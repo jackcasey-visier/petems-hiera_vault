@@ -16,9 +16,9 @@ Puppet::Functions.create_function(:hiera_vault) do
     raise Puppet::DataBinding::LookupError, "[hiera-vault] Must install debouncer gem to use hiera-vault backend"
   end
   begin
-    require 'aws-sdk'
+    require 'aws-sdk-core'
   rescue LoadError => e
-    raise Puppet::DataBinding::LookupError, "[hiera-vault] Must install aws-sdk gem to use hiera-vault backend"
+    raise Puppet::DataBinding::LookupError, "[hiera-vault] Must install aws-sdk-core gem to use hiera-vault backend"
   end
 
 
