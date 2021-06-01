@@ -34,17 +34,20 @@ Puppet::Functions.create_function(:hiera_vault) do
   def vault_token(options)
     token = nil
 
-    if options['aws_iam']
-      context.explain { "[hiera-vault] retrieving token via AWS IAM auth" }
-      token = vault_iam_auth(options)
-    else
-      token = ENV['VAULT_TOKEN'] unless ENV['VAULT_TOKEN'].nil?
-      token ||= options['token'] unless options['token'].nil?
+    # context.explain { "[hiera-vault] retrieving token via AWS IAM auth" }
+    token = vault_iam_auth(options)
 
-      if token.to_s.start_with?('/') and File.exist?(token)
-        token = File.read(token).strip.chomp
-      end
-    end
+    # if options['aws_iam']
+    #   context.explain { "[hiera-vault] retrieving token via AWS IAM auth" }
+    #   token = vault_iam_auth(options)
+    # else
+    #   token = ENV['VAULT_TOKEN'] unless ENV['VAULT_TOKEN'].nil?
+    #   token ||= options['token'] unless options['token'].nil?
+
+    #   if token.to_s.start_with?('/') and File.exist?(token)
+    #     token = File.read(token).strip.chomp
+    #   end
+    # end
 
     token
   end
