@@ -62,7 +62,6 @@ Puppet::Functions.create_function(:hiera_vault) do
 
       secret = Vault.auth.aws_iam(role, Aws::InstanceProfileCredentials.new)
       token = secret.auth.client_token
-      puts token
 
     rescue StandardError => e
       raise Puppet::DataBinding::LookupError, "[hiera-vault] Error getting token using AWS IAM authentication"
