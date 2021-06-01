@@ -15,6 +15,11 @@ Puppet::Functions.create_function(:hiera_vault) do
   rescue LoadError => e
     raise Puppet::DataBinding::LookupError, "[hiera-vault] Must install debouncer gem to use hiera-vault backend"
   end
+  begin
+    require 'aws-sdk'
+  rescue LoadError => e
+    raise Puppet::DataBinding::LookupError, "[hiera-vault] Must install aws-sdk gem to use hiera-vault backend"
+  end
 
 
   dispatch :lookup_key do
@@ -29,11 +34,37 @@ Puppet::Functions.create_function(:hiera_vault) do
   def vault_token(options)
     token = nil
 
-    token = ENV['VAULT_TOKEN'] unless ENV['VAULT_TOKEN'].nil?
-    token ||= options['token'] unless options['token'].nil?
+    if options['aws_iam']
+      context.explain { "[hiera-vault] retrieving token via AWS IAM auth" }
+      token = vault_iam_auth(options)
+    else
+      token = ENV['VAULT_TOKEN'] unless ENV['VAULT_TOKEN'].nil?
+      token ||= options['token'] unless options['token'].nil?
 
-    if token.to_s.start_with?('/') and File.exist?(token)
-      token = File.read(token).strip.chomp
+      if token.to_s.start_with?('/') and File.exist?(token)
+        token = File.read(token).strip.chomp
+      end
+    end
+
+    token
+  end
+
+  def vault_iam_auth(options)
+    secret = nil
+    token = nil
+    role = options['aws_iam_role']
+
+    unless defined?(role)
+      raise Puppet::DataBinding::LookupError, "[hiera-vault] The aws_iam_role option must be set for IAM auth"
+    end
+
+    begin
+
+      secret = Vault.auth.aws_iam(role, Aws::InstanceProfileCredentials.new)
+      token = secret.auth.client_token
+
+    rescue StandardError => e
+      raise Puppet::DataBinding::LookupError, "[hiera-vault] Error getting token using AWS IAM authentication"
     end
 
     token
