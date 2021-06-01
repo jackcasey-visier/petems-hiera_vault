@@ -34,9 +34,6 @@ Puppet::Functions.create_function(:hiera_vault) do
   def vault_token(options)
     token = nil
 
-    # context.explain { "[hiera-vault] retrieving token via AWS IAM auth" }
-    token = vault_iam_auth(options)
-
     # if options['aws_iam']
     #   context.explain { "[hiera-vault] retrieving token via AWS IAM auth" }
     #   token = vault_iam_auth(options)
