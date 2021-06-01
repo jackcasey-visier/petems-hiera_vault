@@ -98,9 +98,9 @@ Puppet::Functions.create_function(:hiera_vault) do
       return context.not_found
     end
 
-    if vault_token(options).nil?
-      raise ArgumentError, '[hiera-vault] no token set in options and no token in VAULT_TOKEN'
-    end
+    # if vault_token(options).nil?
+    #   raise ArgumentError, '[hiera-vault] no token set in options and no token in VAULT_TOKEN'
+    # end
 
     result = vault_get(key, options, context)
 
