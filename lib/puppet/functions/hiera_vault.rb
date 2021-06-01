@@ -53,8 +53,6 @@ Puppet::Functions.create_function(:hiera_vault) do
   end
 
   def vault_iam_auth(options)
-    secret = nil
-    token = nil
     role = options['aws_iam_role']
 
     unless defined?(role)
@@ -63,14 +61,12 @@ Puppet::Functions.create_function(:hiera_vault) do
 
     begin
 
-      secret = Vault.auth.aws_iam(role, Aws::InstanceProfileCredentials.new)
-      token = secret.auth.client_token
+      $vault.auth.aws_iam(role, Aws::InstanceProfileCredentials.new)
 
     rescue StandardError => e
       raise Puppet::DataBinding::LookupError, "[hiera-vault] Error getting token using AWS IAM authentication"
     end
 
-    token
   end
 
   def lookup_key(key, options, context)
@@ -135,13 +131,14 @@ Puppet::Functions.create_function(:hiera_vault) do
     begin
       $vault.configure do |config|
         config.address = options['address'] unless options['address'].nil?
-        config.token = vault_token(options)
         config.ssl_pem_file = options['ssl_pem_file'] unless options['ssl_pem_file'].nil?
         config.ssl_verify = options['ssl_verify'] unless options['ssl_verify'].nil?
         config.ssl_ca_cert = options['ssl_ca_cert'] if config.respond_to? :ssl_ca_cert
         config.ssl_ca_path = options['ssl_ca_path'] if config.respond_to? :ssl_ca_path
         config.ssl_ciphers = options['ssl_ciphers'] if config.respond_to? :ssl_ciphers
       end
+
+      vault_iam_auth(options)
 
       if $vault.sys.seal_status.sealed?
         raise Puppet::DataBinding::LookupError, "[hiera-vault] vault is sealed"
